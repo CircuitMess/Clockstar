@@ -15,9 +15,8 @@ public:
 
 
 	void start() override;
-	void end() override;
-	void depress() override;
-	void compress() override;
+	void stop() override;
+	void unpack() override;
 	void draw() override;
 
 	static void btnRPress();
@@ -40,7 +39,7 @@ private:
 	uint selected = 0;
 	const Color colors[ELEMENTS] = { TFT_GREEN, TFT_PURPLE, TFT_WHITE, TFT_YELLOW, TFT_BLUE, TFT_LIGHTGREY, TFT_OLIVE };
 
-	void scroll();
+	bool scroll();
 	void selectElement(uint element);
 
 	void buildUI();

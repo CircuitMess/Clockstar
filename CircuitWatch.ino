@@ -8,12 +8,12 @@
 #include <UI/ScrollLayout.h>
 #include <Util/Task.h>
 #include <Input/Input.h>
-#include <Bitmaps/Bitmaps.h>
 #include <Update/UpdateManager.h>
 
-#include "CircuitWatch.h"
-#include "Screens/MenuScreen.h"
-#include "Screens/LockScreen.h"
+#include "src/CircuitWatch.h"
+#include "src/Screens/MenuScreen.h"
+#include "src/Screens/LockScreen.h"
+
 
 Display display(128, 128, 18, 4);
 Input input;
@@ -27,9 +27,9 @@ void setup(){
 	menuScreen = new MenuScreen(display);
 	lockScreen = new LockScreen(display, menuScreen);
 
-	lockScreen->depress();
-	lockScreen->compress();
-	lockScreen->depress();
+	lockScreen->unpack();
+	lockScreen->pack();
+	lockScreen->unpack();
 	lockScreen->start();
 
 	input.start();

@@ -5,9 +5,10 @@
 #include <UI/LinearLayout.h>
 #include <UI/Image.h>
 #include <UI/ScrollLayout.h>
+#include <UI/CacheLayout.h>
 #include <UI/GridLayout.h>
 #include <Update/UpdateListener.h>
-#include <UI/LayeredLayout.h>
+#include <UI/Layout.h>
 
 #include <driver/rtc_io.h>
 #include <RTClib.h>
@@ -17,9 +18,9 @@ public:
 	LockScreen(Display& display, Context* unlockedScreen);
 
 	void start() override;
-	void end() override;
-	void depress() override;
-	void compress() override;
+	void stop() override;
+	void pack() override;
+	void unpack() override;
 
 	void draw() override;
 
@@ -33,13 +34,14 @@ private:
 
 	bool sleep = false;
 
+	Layout layers;
 	ScrollLayout bgScroll;
+	CacheLayout bgLayoutCache;
 	LinearLayout bgLayout;
 	GridLayout bgGrid;
 	Image bgImage0;
 	Image bgImage1;
 	Image bgImage2;
-	LayeredLayout layers;
 
 	LinearLayout fgLayout;
 	Image clock;
@@ -51,16 +53,11 @@ private:
 
 	const uint unlockSpeed = 5;
 
-	unsigned i = 0;
-	bool direction = false;
-
 	bool btnState = false;
 	uint btnStateTime = 0;
 
 	uint lockTimer = 0;
 	uint sleepTimer = 0;
-
-	bool screenDrawn = false;
 
 	void buildUI();
 };

@@ -1,4 +1,5 @@
-#include <Bitmaps/Bitmaps.h>
+#include <Bitmaps/Bitmaps.hpp>
+#include "../Bitmaps/Bitmaps.hpp"
 #include <Util/Debug.h>
 #include "../CircuitWatch.h"
 #include "MenuScreen.h"
@@ -16,10 +17,15 @@ MenuScreen::MenuScreen(Display& display) :
 	mainScroll(&screenLayout),
 	grid(&mainScroll, 2){
 
+	addSprite(&imageR);
+	addSprite(&imageL);
+	addSprite(&imageY);
+	addSprite(&imageN);
+
 	instance = this;
 
 	buildUI();
-	compress();
+	pack();
 }
 
 void MenuScreen::btnRPress(){
@@ -52,7 +58,7 @@ void MenuScreen::start(){
 	draw();
 }
 
-void MenuScreen::end(){
+void MenuScreen::stop(){
 	Input::getInstance()->removeBtnReleaseCallback(BTN_A);
 	Input::getInstance()->removeBtnPressCallback(BTN_B);
 	Input::getInstance()->removeBtnPressCallback(BTN_D);
@@ -63,66 +69,38 @@ void MenuScreen::end(){
 	scroll();
 }
 
-void MenuScreen::compress(){
-	Context::compress();
-
-	screenLayout.sprite->resize(1, 1);
-	btnLayout.sprite->resize(1, 1);
-	mainScroll.sprite->resize(1, 1);
-	grid.sprite->resize(1, 1);
-	imageR.sprite->resize(1, 1);
-	imageL.sprite->resize(1, 1);
-	imageY.sprite->resize(1, 1);
-	imageN.sprite->resize(1, 1);
+void MenuScreen::unpack(){
+	Context::unpack();
 
 	for(int i = 0; i < ELEMENTS; i++){
-		gridImages[i]->sprite->resize(1, 1);
-	}
-}
-
-void MenuScreen::depress(){
-	Context::depress();
-
-	imageR.resizeSprite();
-	imageL.resizeSprite();
-	imageY.resizeSprite();
-	imageN.resizeSprite();
-
-	for(int i = 0; i < ELEMENTS; i++){
-		gridImages[i]->resizeSprite();
-		gridImages[i]->sprite->clear(colors[i]);
+		gridImages[i]->getSprite()->clear(colors[i]);
 	}
 
-	imageR.sprite->clear(TFT_BLACK).drawIcon(arrowRight, 0, 0, 18, 18, 1);
-	imageL.sprite->clear(TFT_BLACK).drawIcon(arrowRight, 0, 0, 18, 18, 1);
-	imageY.sprite->clear(TFT_BLACK).drawIcon(yes2, 0, 0, 18, 18, 1);
-	imageN.sprite->clear(TFT_BLACK).drawIcon(cross, 0, 0, 18, 18, 1);
-	imageL.sprite->rotate(2);
-
-	screenLayout.resizeSprite();
-	btnLayout.resizeSprite();
-	mainScroll.resizeSprite();
-	grid.resizeSprite();
+	imageR.getSprite()->clear(TFT_BLACK).drawIcon(arrowRight, 0, 0, 18, 18, 1);
+	imageL.getSprite()->clear(TFT_BLACK).drawIcon(arrowRight, 0, 0, 18, 18, 1);
+	imageY.getSprite()->clear(TFT_BLACK).drawIcon(yes, 0, 0, 18, 18, 1);
+	imageN.getSprite()->clear(TFT_BLACK).drawIcon(cross, 0, 0, 18, 18, 1);
+	imageL.getSprite()->rotate(2);
 }
 
 void MenuScreen::draw(){
-	screenLayout.draw();
-	screenLayout.sprite->push();
+	screen.draw();
+	screen.commit();
 }
 
 void MenuScreen::buildUI(){
 	/** Buttons */
-	imageR.sprite->clear(TFT_BLACK);
-	imageL.sprite->clear(TFT_BLACK);
-	imageY.sprite->clear(TFT_BLACK);
-	imageN.sprite->clear(TFT_BLACK);
+	imageR.getSprite()->clear(TFT_BLACK);
+	imageL.getSprite()->clear(TFT_BLACK);
+	imageY.getSprite()->clear(TFT_BLACK);
+	imageN.getSprite()->clear(TFT_BLACK);
 
-	imageR.sprite->drawIcon(arrowRight, 0, 0, 18, 18, 1);
-	imageL.sprite->drawIcon(arrowRight, 0, 0, 18, 18, 1);
-	imageY.sprite->drawIcon(yes2, 0, 0, 18, 18, 1);
-	imageN.sprite->drawIcon(cross, 0, 0, 18, 18, 1);
+	imageR.getSprite()->drawIcon(arrowRight, 0, 0, 18, 18, 1);
+	imageL.getSprite()->drawIcon(arrowRight, 0, 0, 18, 18, 1);
+	imageY.getSprite()->drawIcon(yes, 0, 0, 18, 18, 1);
+	imageN.getSprite()->drawIcon(cross, 0, 0, 18, 18, 1);
 
-	imageL.sprite->rotate(2);
+	imageL.getSprite()->rotate(2);
 
 	btnLayout.setWHType(FIXED, PARENT);
 	btnLayout.setWidth(28);
@@ -141,9 +119,11 @@ void MenuScreen::buildUI(){
 		Image* gridImage = new Image(&grid, 35, 35);
 		gridImages.push_back(gridImage);
 
-		gridImage->sprite->clear(colors[i]);
+		gridImage->getSprite()->clear(colors[i]);
 		gridImage->setBorderColor(TFT_RED);
 		grid.addChild(gridImage);
+
+		addSprite(gridImage);
 	}
 
 	gridImages.front()->setBorderWidth(3);
@@ -167,9 +147,10 @@ void MenuScreen::buildUI(){
 	btnLayout.reflow();
 
 	screen.addChild(&screenLayout);
+	screen.repos();
 }
 
-void MenuScreen::scroll(){
+bool MenuScreen::scroll(){
 	Image* gridImage = gridImages[selected];
 
 	uint elStart = grid.getPadding() + (selected/2) * (gridImage->getHeight() + grid.getGutter());
@@ -200,23 +181,25 @@ void MenuScreen::scroll(){
 	}
 
 	if(newScroll == mainScroll.getScrollY()){
-		return;
+		return false;
 	}
 
 	mainScroll.setScroll(0, newScroll);
+	return true;
 }
 
 void MenuScreen::selectElement(uint element){
 	gridImages[selected]->setBorderWidth(0);
-	gridImages[selected]->sprite->clear(colors[selected]);
-	gridImages[selected]->pushReverse();
-
+	gridImages[selected]->draw();
 	gridImages[element]->setBorderWidth(3);
-	gridImages[element]->pushReverse();
+	gridImages[element]->draw();
 
 	selected = element;
 
-	scroll();
-	mainScroll.sprite->clear(TFT_BLACK);
-	grid.pushReverse();
+	if(scroll()){
+		mainScroll.clear();
+		mainScroll.draw();
+	}
+
+	screen.commit();
 }
