@@ -7,6 +7,7 @@
 #include <UI/ScrollLayout.h>
 #include <UI/CacheLayout.h>
 #include <UI/GridLayout.h>
+#include <Elements/SliderElement.h>
 #include <Update/UpdateListener.h>
 #include <UI/Layout.h>
 
@@ -27,13 +28,15 @@ public:
 	static void btnXPress();
 	static void btnXRelease();
 
-	void update(uint time) override;
+	static void onUnlockLong();
+	static void onUnlockComplete();
 
+	void update(uint time) override;
 private:
+
 	static LockScreen* instance;
 
-	bool sleep = false;
-
+	bool isSleep = false;
 	Layout layers;
 	ScrollLayout bgScroll;
 	CacheLayout bgLayoutCache;
@@ -41,23 +44,20 @@ private:
 	GridLayout bgGrid;
 	Image bgImage0;
 	Image bgImage1;
-	Image bgImage2;
 
+	Image bgImage2;
 	LinearLayout fgLayout;
 	Image clock;
-	Image lock;
+	SliderElement lockSlider;
 
 	RTC_PCF8523 RTC; // PCF8563
 
 	Context* unlockedScreen;
 
-	const uint unlockSpeed = 5;
-
-	bool btnState = false;
-	uint btnStateTime = 0;
-
-	uint lockTimer = 0;
 	uint sleepTimer = 0;
+
+	void sleep();
+	void wake();
 
 	void buildUI();
 };

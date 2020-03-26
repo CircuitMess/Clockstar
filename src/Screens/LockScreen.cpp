@@ -20,14 +20,17 @@ LockScreen::LockScreen(Display& display, Context* unlockedScreen) :
 		bgImage2(&bgGrid, 36, 31),
 		fgLayout(&layers, VERTICAL),
 		clock(&fgLayout, screen.getWidth() - 10, screen.getHeight() - 28),
-		lock(&fgLayout, 18, 18){
+		lockSlider(&fgLayout, 18, 18){
 
 	addSprite(&bgLayoutCache);
 	addSprite(&bgImage0);
 	addSprite(&bgImage1);
 	addSprite(&bgImage2);
 	addSprite(&clock);
-	addSprite(&lock);
+
+	lockSlider.setLongListener(LockScreen::onUnlockLong);
+	lockSlider.setCompleteListener(LockScreen::onUnlockComplete);
+	lockSlider.setSpeed(4);
 
 	instance = this;
 
@@ -52,45 +55,21 @@ LockScreen::LockScreen(Display& display, Context* unlockedScreen) :
 void LockScreen::btnXPress(){
 	if(instance == nullptr) return;
 
-	instance->lockTimer = 0;
 	instance->sleepTimer = 0;
 
-	if(instance->sleep){
-		instance->sleep = false;
-		UpdateManager::addListener(instance);
-		instance->getScreen().getDisplay()->setPower(true);
+	if(instance->isSleep){
+		instance->wake();
 	}
 
-	instance->btnState = true;
-	instance->lock.getSprite()->clear(TFT_TRANSPARENT);
-	instance->lock.getSprite()->drawIcon(lock_open, 0, 0, 18, 18, 1);
+	instance->lockSlider.getImageSprite()->clear(TFT_TRANSPARENT).drawIcon(lock_open, 0, 0, 18, 18, 1);
+	instance->lockSlider.start();
 }
 
 void LockScreen::btnXRelease(){
 	if(instance == nullptr) return;
 
-	uint score = instance->btnStateTime;
-
-	instance->btnState = false;
-	instance->btnStateTime = 0;
-
-	instance->lock.getSprite()->clear(TFT_TRANSPARENT);
-	instance->lock.getSprite()->drawIcon(lock_closed, 0, 0, 18, 18, 1);
-
-	// under 10 pixel move
-	if((score > 40 * instance->unlockSpeed) && (score < 100 * instance->unlockSpeed)){
-		// sleep
-
-
-		if(!instance->sleep){
-			instance->sleep = true;
-			UpdateManager::removeListener(instance);
-			/*instance->layers.getSprite()->clear(TFT_BLACK);
-			instance->layers.draw();
-			instance->screenDrawn = false;*/
-			instance->screen.getDisplay()->setPower(false);
-		}
-	}
+	instance->lockSlider.stop();
+	instance->lockSlider.getImageSprite()->clear(TFT_TRANSPARENT).drawIcon(lock_closed, 0, 0, 18, 18, 1);
 }
 
 void LockScreen::start(){
@@ -98,8 +77,8 @@ void LockScreen::start(){
 	Input::getInstance()->setBtnReleaseCallback(BTN_D, btnXRelease);
 
 	UpdateManager::addListener(this);
+	UpdateManager::addListener(&lockSlider);
 
-	lockTimer = 0;
 	sleepTimer = 0;
 }
 
@@ -108,6 +87,7 @@ void LockScreen::stop(){
 	Input::getInstance()->removeBtnReleaseCallback(BTN_D);
 
 	UpdateManager::removeListener(this);
+	UpdateManager::removeListener(&lockSlider);
 }
 
 void LockScreen::pack(){
@@ -121,35 +101,42 @@ void LockScreen::unpack(){
 	bgImage1.getSprite()->clear(TFT_GREEN);
 	bgImage2.getSprite()->clear(TFT_GREEN);
 	clock.getSprite()->clear(TFT_TRANSPARENT);
-	lock.getSprite()->clear(TFT_TRANSPARENT);
-	lock.getSprite()->drawIcon(lock_closed, 0, 0, 18, 18, 1);
+	lockSlider.getImageSprite()->clear(TFT_TRANSPARENT).drawIcon(lock_closed, 0, 0, 18, 18, 1);
 	bgLayoutCache.refresh();
 }
 
-void LockScreen::update(uint time){
-	if(packed || sleep) return;
+void LockScreen::onUnlockLong(){
+	instance->sleep();
+}
 
-	lockTimer += time;
+void LockScreen::onUnlockComplete(){
+	if(instance->unlockedScreen){
+		instance->unlockedScreen->push(instance);
+	}
+}
+
+void LockScreen::sleep(){
+	UpdateManager::removeListener(&instance->lockSlider);
+	UpdateManager::removeListener(instance);
+	instance->isSleep = true;
+	instance->screen.getDisplay()->setPower(false);
+}
+
+void LockScreen::wake(){
+	isSleep = false;
+	UpdateManager::addListener(&instance->lockSlider);
+	UpdateManager::addListener(instance);
+	instance->getScreen().getDisplay()->setPower(true);
+}
+
+void LockScreen::update(uint time){
+	if(packed || isSleep) return;
+
 	sleepTimer += time;
 
-	// sleep timer
-	if(false && sleepTimer > 5000 && !instance->sleep){
-		instance->sleep = true;
-		UpdateManager::removeListener(instance);
-		instance->screen.getDisplay()->setPower(false);
-	}
-
-	if(btnState){
-		btnStateTime += time;
-	}
-
-	if(btnStateTime / unlockSpeed > (fgLayout.getAvailableWidth() - lock.getWidth()) && unlockedScreen != nullptr){
-		btnState = false;
-		btnStateTime = 0;
-
-		unlockedScreen->push(this);
-
-		return;
+	// isSleep timer
+	if(false && sleepTimer > 5000 && !isSleep){
+		sleep();
 	}
 
 	draw();
@@ -256,14 +243,7 @@ void LockScreen::draw(){
 	if(sec < 10) clock.getSprite()->print("0");
 	clock.getSprite()->println(String(sec));
 
-	if(lockTimer < 2000){
-		uint newPos = lock.getSprite()->getX();
-		if(fgLayout.getAvailableWidth() >= lock.getWidth() + btnStateTime / unlockSpeed){
-			newPos = fgLayout.getAvailableWidth() - lock.getWidth() + fgLayout.getPadding() - btnStateTime / unlockSpeed;
-		}
-		lock.setPos(newPos, lock.getY());
-		Serial.println(String(newPos));
-	}
+	lockSlider.draw();
 
 	fgLayout.draw();
 }
@@ -317,16 +297,20 @@ void LockScreen::buildUI(){
 	// bgScroll.getSprite()->setParent(layers.sprite); // TODO: ??
 	layers.addChild(&bgScroll);
 
+	lockSlider.setWHType(PARENT, CHILDREN);
+	lockSlider.setWidth(100);
+	lockSlider.reflow();
+	lockSlider.getImageSprite()->clear(TFT_TRANSPARENT).setChroma(TFT_TRANSPARENT); // .drawIcon(lock_closed, 0, 0, 18, 18, 1);
+
 	/** FG */
 	fgLayout.setWHType(PARENT, PARENT);
 	fgLayout.setPadding(5);
 	fgLayout.addChild(&clock);
-	fgLayout.addChild(&lock);
+	fgLayout.addChild(&lockSlider);
 	fgLayout.reflow();
+	lockSlider.reflow();
 
 	clock.getSprite()->clear(TFT_TRANSPARENT).setChroma(TFT_TRANSPARENT);
-	lock.getSprite()->clear(TFT_TRANSPARENT).setChroma(TFT_TRANSPARENT);
-	lock.getSprite()->drawIcon(lock_closed, 0, 0, 18, 18, 1);
 
 	layers.addChild(&fgLayout);
 
