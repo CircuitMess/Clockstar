@@ -27,6 +27,7 @@ public:
 
 	static void btnXPress();
 	static void btnXRelease();
+	static void btnABCPress();
 
 	static void onUnlockLong();
 	static void onUnlockComplete();

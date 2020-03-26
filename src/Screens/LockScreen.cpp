@@ -72,9 +72,18 @@ void LockScreen::btnXRelease(){
 	instance->lockSlider.getImageSprite()->clear(TFT_TRANSPARENT).drawIcon(lock_closed, 0, 0, 18, 18, 1);
 }
 
+void LockScreen::btnABCPress(){
+	instance->lockSlider.getImageSprite()->clear(TFT_TRANSPARENT).drawIcon(lock_closed, 0, 0, 18, 18, 1);
+	instance->sleepTimer = 0;
+}
+
 void LockScreen::start(){
-	Input::getInstance()->setBtnPressCallback(BTN_D, btnXPress);
-	Input::getInstance()->setBtnReleaseCallback(BTN_D, btnXRelease);
+	Input::getInstance()->setBtnPressCallback(BTN_D, LockScreen::btnXPress);
+	Input::getInstance()->setBtnReleaseCallback(BTN_D, LockScreen::btnXRelease);
+
+	Input::getInstance()->setBtnReleaseCallback(BTN_A, LockScreen::btnABCPress);
+	Input::getInstance()->setBtnPressCallback(BTN_B, LockScreen::btnABCPress);
+	Input::getInstance()->setBtnPressCallback(BTN_C, LockScreen::btnABCPress);
 
 	UpdateManager::addListener(this);
 	UpdateManager::addListener(&lockSlider);
@@ -85,6 +94,10 @@ void LockScreen::start(){
 void LockScreen::stop(){
 	Input::getInstance()->removeBtnPressCallback(BTN_D);
 	Input::getInstance()->removeBtnReleaseCallback(BTN_D);
+
+	Input::getInstance()->removeBtnReleaseCallback(BTN_A);
+	Input::getInstance()->removeBtnPressCallback(BTN_B);
+	Input::getInstance()->removeBtnPressCallback(BTN_C);
 
 	UpdateManager::removeListener(this);
 	UpdateManager::removeListener(&lockSlider);
@@ -134,7 +147,10 @@ void LockScreen::update(uint time){
 
 	sleepTimer += time;
 
-	// isSleep timer
+	if(sleepTimer > 1000 && sleepTimer < 1200){ // ehh
+		lockSlider.getImageSprite()->clear(TFT_TRANSPARENT);
+	}
+
 	if(false && sleepTimer > 5000 && !isSleep){
 		sleep();
 	}
