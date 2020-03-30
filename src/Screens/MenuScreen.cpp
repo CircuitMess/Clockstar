@@ -14,8 +14,7 @@ MenuScreen::MenuScreen(Display& display) :
 	imageL(&btnLayout, 18, 18),
 	imageY(&btnLayout, 18, 18),
 	imageN(&btnLayout, 18, 18),
-	mainScroll(&screenLayout),
-	grid(&mainScroll, 2){
+	menu(&screenLayout, 2){
 
 	addSprite(&imageR);
 	addSprite(&imageL);
@@ -31,17 +30,15 @@ MenuScreen::MenuScreen(Display& display) :
 void MenuScreen::btnRPress(){
 	if(instance == nullptr) return;
 
-	instance->selectElement((instance->selected + 1) % ELEMENTS);
+	instance->menu.selectNext();
+	instance->screen.commit();
 }
 
 void MenuScreen::btnLPress(){
 	if(instance == nullptr) return;
 
-	if(instance->selected == 0){
-		instance->selectElement(ELEMENTS - 1);
-	}else{
-		instance->selectElement(instance->selected - 1);
-	}
+	instance->menu.selectPrev();
+	instance->screen.commit();
 }
 
 void MenuScreen::btnXPress(){
@@ -63,10 +60,7 @@ void MenuScreen::stop(){
 	Input::getInstance()->removeBtnPressCallback(BTN_B);
 	Input::getInstance()->removeBtnPressCallback(BTN_D);
 
-	gridImages[selected]->setBorderWidth(0);
-	gridImages[0]->setBorderWidth(3);
-	selected = 0;
-	scroll();
+	menu.setSelected(0);
 }
 
 void MenuScreen::unpack(){
@@ -85,11 +79,17 @@ void MenuScreen::unpack(){
 
 void MenuScreen::draw(){
 	screen.draw();
+
+	btnLayout.getSprite()->fillRect(btnLayout.getTotalX(), btnLayout.getTotalY(), btnLayout.getWidth(), 16, TFT_DARKGREEN);
+	imageR.draw();
+
 	screen.commit();
 }
 
 void MenuScreen::buildUI(){
 	/** Buttons */
+	imageR.getSprite()->setChroma(TFT_BLACK);
+
 	imageR.getSprite()->clear(TFT_BLACK);
 	imageL.getSprite()->clear(TFT_BLACK);
 	imageY.getSprite()->clear(TFT_BLACK);
@@ -116,90 +116,30 @@ void MenuScreen::buildUI(){
 	/** Grid */
 
 	for(int i = 0; i < ELEMENTS; i++){
-		Image* gridImage = new Image(&grid, 35, 35);
+		Image* gridImage = new Image(&menu, 35, 35);
 		gridImages.push_back(gridImage);
-
 		gridImage->getSprite()->clear(colors[i]);
-		gridImage->setBorderColor(TFT_RED);
-		grid.addChild(gridImage);
-
 		addSprite(gridImage);
 	}
 
-	gridImages.front()->setBorderWidth(3);
+	/** Menu */
 
-	grid.setWHType(PARENT, CHILDREN);
-	grid.setPadding(10).setGutter(10);
+	menu.setWHType(FIXED, PARENT);
+	menu.setWidth(100);
+
+	for(int i = 0; i < ELEMENTS; i++){
+		menu.addItem({ "Foo " + String(i+1), gridImages[i] });
+	}
 
 	/** Layout */
 
-	mainScroll.setWHType(FIXED, PARENT);
-	mainScroll.setWidth(100);
-	//mainScroll.setBorder(1, TFT_RED);
-	mainScroll.addChild(&grid);
-
 	screenLayout.setWHType(PARENT, PARENT);
-	screenLayout.addChild(&mainScroll).addChild(&btnLayout);
+	screenLayout.addChild(&menu).addChild(&btnLayout);
 
 	screenLayout.reflow();
-	mainScroll.reflow();
-	grid.reflow();
+	menu.reflow();
 	btnLayout.reflow();
 
 	screen.addChild(&screenLayout);
 	screen.repos();
-}
-
-bool MenuScreen::scroll(){
-	Image* gridImage = gridImages[selected];
-
-	uint elStart = grid.getPadding() + (selected/2) * (gridImage->getHeight() + grid.getGutter());
-	uint elEnd = elStart + gridImage->getHeight();
-
-	uint screenStart = mainScroll.getScrollY();
-	uint screenEnd = screenStart + screen.getHeight();
-
-	uint newScroll = mainScroll.getScrollY();
-	Serial.println("Element end / screen end: " + String(elEnd) + " / " + String(screenEnd));
-	if(elStart < screenStart){
-		newScroll = elStart;
-
-		if(newScroll == grid.getPadding()){
-			newScroll = 0;
-		}else{
-			newScroll -= grid.getGutter() / 2;
-		}
-	}else if(elEnd > screenEnd){
-		newScroll += elEnd - screenEnd;
-
-		Serial.println("A / B: " + String(newScroll + screen.getHeight()) + " / " + String(grid.getHeight() - grid.getPadding()));
-		if(newScroll + screen.getHeight() == grid.getHeight() - grid.getPadding()){
-			newScroll += grid.getPadding();
-		}else{
-			newScroll += grid.getGutter() / 2;
-		}
-	}
-
-	if(newScroll == mainScroll.getScrollY()){
-		return false;
-	}
-
-	mainScroll.setScroll(0, newScroll);
-	return true;
-}
-
-void MenuScreen::selectElement(uint element){
-	gridImages[selected]->setBorderWidth(0);
-	gridImages[selected]->draw();
-	gridImages[element]->setBorderWidth(3);
-	gridImages[element]->draw();
-
-	selected = element;
-
-	if(scroll()){
-		mainScroll.clear();
-		mainScroll.draw();
-	}
-
-	screen.commit();
 }

@@ -6,6 +6,7 @@
 #include <UI/Image.h>
 #include <UI/ScrollLayout.h>
 #include <UI/GridLayout.h>
+#include <Elements/GridMenu.h>
 
 #define ELEMENTS 7
 
@@ -32,15 +33,10 @@ private:
 	Image imageL;
 	Image imageY;
 	Image imageN;
-	ScrollLayout mainScroll;
-	GridLayout grid;
 	Vector<Image*> gridImages;
+	GridMenu menu;
 
-	uint selected = 0;
 	const Color colors[ELEMENTS] = { TFT_GREEN, TFT_PURPLE, TFT_WHITE, TFT_YELLOW, TFT_BLUE, TFT_LIGHTGREY, TFT_OLIVE };
-
-	bool scroll();
-	void selectElement(uint element);
 
 	void buildUI();
 
