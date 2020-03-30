@@ -126,6 +126,7 @@ void MenuScreen::buildUI(){
 
 	menu.setWHType(FIXED, PARENT);
 	menu.setWidth(100);
+	menu.setTitleColor(TFT_GREEN, TFT_BLACK);
 
 	for(int i = 0; i < ELEMENTS; i++){
 		menu.addItem({ "Foo " + String(i+1), gridImages[i] });

@@ -211,7 +211,7 @@ void LockScreen::draw(){
 			int posDiff = t * boxSize - boxSize;
 			int posX = i * boxSize + posDiff;
 			int posY = j * boxSize + posDiff;
-			checkerSprite->fillRect(posX, posY, rectSize, rectSize, clr);
+			//checkerSprite->fillRect(posX, posY, rectSize, rectSize, clr);
 		}
 	}
 
