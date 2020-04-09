@@ -1,10 +1,12 @@
+#include "LockScreen.h"
 
+#include "../CircuitWatch.h"
+#include "../Bitmaps/Bitmaps.hpp"
+
+#include <Time.h>
 #include <Util/Debug.h>
 #include <Update/UpdateManager.h>
-#include "../CircuitWatch.h"
-#include "LockScreen.h"
 #include <Bitmaps/Bitmaps.hpp>
-#include "../Bitmaps/Bitmaps.hpp"
 
 LockScreen* LockScreen::instance = nullptr;
 
@@ -103,9 +105,6 @@ void LockScreen::stop(){
 	UpdateManager::removeListener(&lockSlider);
 }
 
-void LockScreen::pack(){
-	Context::pack();
-}
 
 void LockScreen::unpack(){
 	Context::unpack();
@@ -219,45 +218,45 @@ void LockScreen::draw(){
 	clock.getSprite()->clear(TFT_TRANSPARENT);
 	clock.getSprite()->setTextFont(1);
 
-	DateTime currentTime(m / 1000); // RTC.now();
-	uint sec = currentTime.second() % 60;
-	uint min = currentTime.minute();
-	uint hour = currentTime.hour();
-	uint day = currentTime.day();
-	uint month = currentTime.month();
-	uint year = currentTime.year();
+	// DateTime currentTime(m / 1000); // RTC.now();
+	uint _sec = second();
+	uint _min = minute();
+	uint _hour = hour();
+	uint _day = day();
+	uint _month = month();
+	uint _year = year();
 
-	// hour / minute
+	// _hour / minute
 	clock.getSprite()->setTextSize(5);
 	clock.getSprite()->setTextColor(TFT_PURPLE);
 	clock.getSprite()->setCursor(2, 23);
-	if(hour < 10) clock.getSprite()->print("0");
-	clock.getSprite()->println(String(hour));
+	if(_hour < 10) clock.getSprite()->print("0");
+	clock.getSprite()->println(String(_hour));
 	clock.getSprite()->setCursor(2, clock.getSprite()->getCursorY()-1);
-	if(min < 10) clock.getSprite()->print("0");
-	clock.getSprite()->println(String(min));
+	if(_min < 10) clock.getSprite()->print("0");
+	clock.getSprite()->println(String(_min));
 
 	// track
 	clock.getSprite()->fillRoundRect(62 + 15 - (float) abs(((m * 2 + 1) % 2000) - 1000) * 15.0f / 1000.0f, 62, 40, 6, 2, TFT_PURPLE);
 
 	// date
-	clock.getSprite()->setCursor(75 + (day < 10) * 2, 72);
+	clock.getSprite()->setCursor(75 + (_day < 10) * 2, 72);
 	clock.getSprite()->setTextColor(TFT_BLUE);
 	clock.getSprite()->setTextSize(1);
-	clock.getSprite()->print(String(day) + "/");
-	if(month < 10) clock.getSprite()->print("0");
-	clock.getSprite()->println(String(month) + "");
+	clock.getSprite()->print(String(_day) + "/");
+	if(_month < 10) clock.getSprite()->print("0");
+	clock.getSprite()->println(String(_month) + "");
 
-	// year
+	// _year
 	clock.getSprite()->setCursor(77, clock.getSprite()->getCursorY() + 2);
-	clock.getSprite()->println(String(year));
+	clock.getSprite()->println(String(_year));
 
 	// seconds
 	clock.getSprite()->setCursor(78, 43);
 	clock.getSprite()->setTextColor(TFT_RED);
 	clock.getSprite()->setTextSize(2);
-	if(sec < 10) clock.getSprite()->print("0");
-	clock.getSprite()->println(String(sec));
+	if(_sec < 10) clock.getSprite()->print("0");
+	clock.getSprite()->println(String(_sec));
 
 	lockSlider.draw();
 

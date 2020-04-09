@@ -20,9 +20,7 @@ public:
 
 	void start() override;
 	void stop() override;
-	void pack() override;
 	void unpack() override;
-
 	void draw() override;
 
 	static void btnXPress();
