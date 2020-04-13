@@ -8,12 +8,19 @@
 #include <UI/GridLayout.h>
 #include <Elements/GridMenu.h>
 
+#include <string>
+
 #define ELEMENTS 7
+
+struct LauncherItem {
+	std::string title;
+	Context* context;
+	Image* image;
+};
 
 class MenuScreen : public Context {
 public:
 	MenuScreen(Display& display);
-
 
 	void start() override;
 	void stop() override;
@@ -22,6 +29,7 @@ public:
 
 	static void btnRPress();
 	static void btnLPress();
+	static void btnYPress();
 	static void btnXPress();
 
 private:
@@ -33,10 +41,12 @@ private:
 	Image imageL;
 	Image imageY;
 	Image imageN;
-	Vector<Image*> gridImages;
 	GridMenu menu;
 
 	const Color colors[ELEMENTS] = { TFT_GREEN, TFT_PURPLE, TFT_WHITE, TFT_YELLOW, TFT_BLUE, TFT_LIGHTGREY, TFT_OLIVE };
+
+	std::vector<LauncherItem> menuItems;
+	void fillMenu();
 
 	void buildUI();
 

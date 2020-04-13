@@ -41,6 +41,13 @@ void MenuScreen::btnLPress(){
 	instance->screen.commit();
 }
 
+void MenuScreen::btnYPress(){
+	if(instance == nullptr) return;
+
+	Context* app = instance->menuItems[instance->menu.getSelected()].context;
+	app->push(instance);
+}
+
 void MenuScreen::btnXPress(){
 	if(instance == nullptr) return;
 
@@ -50,6 +57,7 @@ void MenuScreen::btnXPress(){
 void MenuScreen::start(){
 	Input::getInstance()->setBtnReleaseCallback(BTN_A, btnRPress);
 	Input::getInstance()->setBtnPressCallback(BTN_B, btnLPress);
+	Input::getInstance()->setBtnPressCallback(BTN_C, btnYPress);
 	Input::getInstance()->setBtnPressCallback(BTN_D, btnXPress);
 
 	draw();
@@ -58,6 +66,7 @@ void MenuScreen::start(){
 void MenuScreen::stop(){
 	Input::getInstance()->removeBtnReleaseCallback(BTN_A);
 	Input::getInstance()->removeBtnPressCallback(BTN_B);
+	Input::getInstance()->removeBtnPressCallback(BTN_C);
 	Input::getInstance()->removeBtnPressCallback(BTN_D);
 
 	menu.setSelected(0);
@@ -66,15 +75,15 @@ void MenuScreen::stop(){
 void MenuScreen::unpack(){
 	Context::unpack();
 
-	for(int i = 0; i < ELEMENTS; i++){
-		gridImages[i]->getSprite()->clear(colors[i]);
-	}
-
 	imageR.getSprite()->clear(TFT_BLACK).drawIcon(arrowRight, 0, 0, 18, 18, 1);
 	imageL.getSprite()->clear(TFT_BLACK).drawIcon(arrowRight, 0, 0, 18, 18, 1);
 	imageY.getSprite()->clear(TFT_BLACK).drawIcon(yes, 0, 0, 18, 18, 1);
 	imageN.getSprite()->clear(TFT_BLACK).drawIcon(cross, 0, 0, 18, 18, 1);
 	imageL.getSprite()->rotate(2);
+
+	for(auto& item : menuItems){
+		item.image->getSprite()->clear(TFT_WHITE);
+	}
 }
 
 void MenuScreen::draw(){
@@ -84,6 +93,15 @@ void MenuScreen::draw(){
 	imageR.draw();
 
 	screen.commit();
+}
+
+void MenuScreen::fillMenu(){
+	for(auto& item : menuItems){
+		Image* image = item.image = new Image(&menu, 35, 35);
+		image->getSprite()->clear(TFT_WHITE);
+		addSprite(image);
+		menu.addItem({ item.title.data(), image });
+	}
 }
 
 void MenuScreen::buildUI(){
@@ -113,24 +131,13 @@ void MenuScreen::buildUI(){
 	btnLayout.addChild(&imageY);
 	btnLayout.addChild(&imageN);
 
-	/** Grid */
-
-	for(int i = 0; i < ELEMENTS; i++){
-		Image* gridImage = new Image(&menu, 35, 35);
-		gridImages.push_back(gridImage);
-		gridImage->getSprite()->clear(colors[i]);
-		addSprite(gridImage);
-	}
-
 	/** Menu */
 
 	menu.setWHType(FIXED, PARENT);
 	menu.setWidth(100);
 	menu.setTitleColor(TFT_GREEN, TFT_BLACK);
 
-	for(int i = 0; i < ELEMENTS; i++){
-		menu.addItem({ "Foo " + String(i+1), gridImages[i] });
-	}
+	fillMenu();
 
 	/** Layout */
 
