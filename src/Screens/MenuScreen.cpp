@@ -3,6 +3,7 @@
 #include <Util/Debug.h>
 #include "../CircuitWatch.h"
 #include "MenuScreen.h"
+#include "../Apps/GProg/GProg.h"
 
 MenuScreen* MenuScreen::instance = nullptr;
 
@@ -22,6 +23,8 @@ MenuScreen::MenuScreen(Display& display) :
 	addSprite(&imageN);
 
 	instance = this;
+
+	menuItems.push_back({ "GProg", new GProg(display), nullptr });
 
 	buildUI();
 	pack();

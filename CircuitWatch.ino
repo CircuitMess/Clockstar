@@ -23,7 +23,6 @@ Input input;
 MenuScreen* menuScreen;
 LockScreen* lockScreen;
 
-
 void setup(){
 	Serial.begin(115200);
 
