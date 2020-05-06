@@ -29,6 +29,7 @@ LockScreen::LockScreen(Display& display, Context* unlockedScreen) :
 	addSprite(&bgImage1);
 	addSprite(&bgImage2);
 	addSprite(&clock);
+	// addSprite(&screen);
 
 	lockSlider.setLongListener(LockScreen::onUnlockLong);
 	lockSlider.setCompleteListener(LockScreen::onUnlockComplete);
@@ -301,7 +302,11 @@ void LockScreen::buildUI(){
 	bgLayout.reflow();
 	bgLayout.setStrictPos(true);
 
-	bgLayoutCache.setWHType(CHILDREN, CHILDREN);
+	//bgLayoutCache.setWHType(CHILDREN, CHILDREN);
+	bgLayoutCache.setWHType(FIXED, FIXED);
+	bgLayoutCache.setWidth(0);
+	bgLayoutCache.setHeight(0);
+
 	bgLayoutCache.addChild(&bgLayout);
 	bgLayoutCache.reflow();
 	bgLayoutCache.repos();
