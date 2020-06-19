@@ -4,18 +4,34 @@ project(CircuitWatch)
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/cores/esp32)
+include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/tools/sdk)
 include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/tools/sdk/include)
+include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/tools/sdk/include/freertos)
+include_directories(~/Arduino/libraries/Keypad_I2Ca)
+include_directories(~/Arduino/libraries/Keypad/src)
 include_directories(~/Arduino/libraries/GRT/src)
 include_directories(~/Arduino/libraries/Time)
 include_directories(~/Arduino/libraries/RTClib)
-include_directories(~/Arduino/libraries/TFT_eSPI-master)
+include_directories(~/Arduino/libraries/TFT_eSPI)
+include_directories(~/Arduino/libraries/MPU6050)
+include_directories(~/Arduino/libraries/SparkFun_ICM20948/src)
 include_directories(~/Arduino/libraries/CircuitOS/src)
+
+include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/libraries/Wire/src)
+include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/libraries/FS/src)
+include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/libraries/SD/src)
+include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/libraries/SPI/src)
+
+
+include_directories(/usr/include/glm)
 
 AUX_SOURCE_DIRECTORY(src SOURCES)
 AUX_SOURCE_DIRECTORY(src/Apps/GProg SOURCES)
+AUX_SOURCE_DIRECTORY(src/Apps/Playground SOURCES)
 AUX_SOURCE_DIRECTORY(src/Bitmaps SOURCES)
-AUX_SOURCE_DIRECTORY(Components SOURCES)
+AUX_SOURCE_DIRECTORY(src/Components SOURCES)
 AUX_SOURCE_DIRECTORY(src/Screens SOURCES)
+AUX_SOURCE_DIRECTORY(src/Screens/LockScreen SOURCES)
 
 add_definitions(-DDEBUG)
 
