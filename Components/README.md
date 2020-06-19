@@ -1,1 +1,0 @@
-# MFCC from [damellis/ESP](https://github.com/damellis/ESP)

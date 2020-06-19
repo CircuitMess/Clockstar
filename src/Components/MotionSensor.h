@@ -7,21 +7,26 @@
 typedef uint UINT;
 typedef ulong ULONG;
 #include <GRT.h>
+#include <CoreModules/GestureRecognitionPipeline.h>
+#include "../Apps/GProg/Recording.h"
 
 class MotionSensor : public UpdateListener {
 public:
-	MotionSensor();
+	MotionSensor(MPU* mpu);
 
 	void start();
 	void stop();
 
 	void update(uint millis) override;
 
+	void train(const std::vector<Recording*>& data);
+	bool predict(const quatf& rot);
+
 private:
 
-	MPU mpu;
+	MPU* mpu;
 
-	GRT::GestureRecognitionPipeline pipeline;
+	GRT::GestureRecognitionPipeline* pipeline;
 
 };
 
