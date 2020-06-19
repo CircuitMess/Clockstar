@@ -15,7 +15,7 @@
 struct LauncherItem {
 	std::string title;
 	Context* context;
-	Image* image;
+	Element* image;
 };
 
 class MenuScreen : public Context {
@@ -47,7 +47,6 @@ private:
 
 	std::vector<LauncherItem> menuItems;
 	void fillMenu();
-
 	void buildUI();
 
 };

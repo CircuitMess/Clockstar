@@ -13,6 +13,17 @@
 
 #include <driver/rtc_io.h>
 #include <RTClib.h>
+#include <UI/CustomElement.h>
+
+class Block : public CustomElement {
+public:
+	using CustomElement::CustomElement;
+
+	void draw() override{
+		getSprite()->fillRect(getTotalX(), getTotalY(), getWidth(), getHeight(), TFT_GREEN);
+		Element::draw();
+	}
+};
 
 class LockScreen : public Context, public UpdateListener {
 public:
@@ -41,10 +52,9 @@ private:
 	CacheLayout bgLayoutCache;
 	LinearLayout bgLayout;
 	GridLayout bgGrid;
-	Image bgImage0;
-	Image bgImage1;
-
-	Image bgImage2;
+	Block bgImage0;
+	Block bgImage1;
+	Block bgImage2;
 	LinearLayout fgLayout;
 	Image clock;
 	SliderElement lockSlider;

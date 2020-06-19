@@ -1,12 +1,13 @@
 #include "LockScreen.h"
 
-#include "../CircuitWatch.h"
-#include "../Bitmaps/Bitmaps.hpp"
+#include "../../CircuitWatch.h"
+#include "../../Bitmaps/lock_open.hpp"
+#include "../../Bitmaps/lock_closed.hpp"
 
 #include <Time.h>
 #include <Util/Debug.h>
 #include <Update/UpdateManager.h>
-#include <Bitmaps/Bitmaps.hpp>
+#include <Input/Input.h>
 
 LockScreen* LockScreen::instance = nullptr;
 
@@ -25,9 +26,6 @@ LockScreen::LockScreen(Display& display, Context* unlockedScreen) :
 		lockSlider(&fgLayout, 18, 18){
 
 	addSprite(&bgLayoutCache);
-	addSprite(&bgImage0);
-	addSprite(&bgImage1);
-	addSprite(&bgImage2);
 	addSprite(&clock);
 
 	lockSlider.setLongListener(LockScreen::onUnlockLong);
@@ -80,26 +78,29 @@ void LockScreen::btnABCPress(){
 }
 
 void LockScreen::start(){
-	Input::getInstance()->setBtnPressCallback(BTN_D, LockScreen::btnXPress);
-	Input::getInstance()->setBtnReleaseCallback(BTN_D, LockScreen::btnXRelease);
+	Input::getInstance()->setBtnPressCallback(BTN_N, LockScreen::btnXPress);
+	Input::getInstance()->setBtnReleaseCallback(BTN_N, LockScreen::btnXRelease);
 
-	Input::getInstance()->setBtnReleaseCallback(BTN_A, LockScreen::btnABCPress);
-	Input::getInstance()->setBtnPressCallback(BTN_B, LockScreen::btnABCPress);
-	Input::getInstance()->setBtnPressCallback(BTN_C, LockScreen::btnABCPress);
+	Input::getInstance()->setBtnPressCallback(BTN_L, LockScreen::btnABCPress);
+	Input::getInstance()->setBtnPressCallback(BTN_R, LockScreen::btnABCPress);
+	Input::getInstance()->setBtnPressCallback(BTN_Y, LockScreen::btnABCPress);
 
 	UpdateManager::addListener(this);
 	UpdateManager::addListener(&lockSlider);
+
+	draw();
+	screen.commit();
 
 	sleepTimer = 0;
 }
 
 void LockScreen::stop(){
-	Input::getInstance()->removeBtnPressCallback(BTN_D);
-	Input::getInstance()->removeBtnReleaseCallback(BTN_D);
+	Input::getInstance()->removeBtnPressCallback(BTN_N);
+	Input::getInstance()->removeBtnReleaseCallback(BTN_N);
 
-	Input::getInstance()->removeBtnReleaseCallback(BTN_A);
-	Input::getInstance()->removeBtnPressCallback(BTN_B);
-	Input::getInstance()->removeBtnPressCallback(BTN_C);
+	Input::getInstance()->removeBtnPressCallback(BTN_L);
+	Input::getInstance()->removeBtnPressCallback(BTN_R);
+	Input::getInstance()->removeBtnPressCallback(BTN_Y);
 
 	UpdateManager::removeListener(this);
 	UpdateManager::removeListener(&lockSlider);
@@ -109,9 +110,6 @@ void LockScreen::stop(){
 void LockScreen::unpack(){
 	Context::unpack();
 
-	bgImage0.getSprite()->clear(TFT_GREEN);
-	bgImage1.getSprite()->clear(TFT_GREEN);
-	bgImage2.getSprite()->clear(TFT_GREEN);
 	clock.getSprite()->clear(TFT_TRANSPARENT);
 	lockSlider.getImageSprite()->clear(TFT_TRANSPARENT).drawIcon(lock_closed, 0, 0, 18, 18, 1);
 	bgLayoutCache.refresh();
@@ -144,7 +142,7 @@ void LockScreen::wake(){
 void LockScreen::update(uint time){
 	if(packed || isSleep) return;
 
-	sleepTimer += time;
+	sleepTimer += time / 1000.0;
 
 	if(sleepTimer > 1000 && sleepTimer < 1200){ // ehh
 		lockSlider.getImageSprite()->clear(TFT_TRANSPARENT);
@@ -185,9 +183,6 @@ void LockScreen::draw(){
 #define nfb fabs(2.0 * ((int) (bp * nf) % 255) - 255)
 #define clr RGB(190, (240-bp/4), (20+bp/3))
 
-	/** Checkers */
-	Sprite* checkerSprite = screen.getSprite();
-
 	uint mdiffCol = 2000;
 	uint mdiffPos = 500;
 	uint rects = 15;
@@ -195,12 +190,12 @@ void LockScreen::draw(){
 	float boxSize = 128.0 / rects;
 	uint rectSize = rectSpace * boxSize;
 
-	float mt = fabs(2.0 * (m % mdiffCol) / mdiffCol - 1.0);
+	float mt = fabs(2.0f * (m % mdiffCol) / mdiffCol - 1.0);
 	//float mt = cos(2.0 * M_PI * m / mdiffCol) / 2.0 + 1.0;
 
 	for(int i = 0; i < rects+2; i++){
 		for(int j = 0; j < rects+2; j++){
-			float pt = (i + j) / 2.0 / rects;
+			float pt = (float) (i + j) / 2.0 / rects;
 			//pt = sin(2 * M_PI * pt) / 2.0 + 0.5;
 
 			uint bp = (byte) ((mt + cos(pt) / 2.0 + 0.5) / 2.0 * 254.0);
@@ -214,9 +209,11 @@ void LockScreen::draw(){
 		}
 	}
 
+	Sprite* canvas = clock.getSprite();
+
 	/** Clock */
-	clock.getSprite()->clear(TFT_TRANSPARENT);
-	clock.getSprite()->setTextFont(1);
+	canvas->clear(TFT_TRANSPARENT);
+	canvas->setTextFont(1);
 
 	// DateTime currentTime(m / 1000); // RTC.now();
 	uint _sec = second();
@@ -227,36 +224,36 @@ void LockScreen::draw(){
 	uint _year = year();
 
 	// _hour / minute
-	clock.getSprite()->setTextSize(5);
-	clock.getSprite()->setTextColor(TFT_PURPLE);
-	clock.getSprite()->setCursor(2, 23);
-	if(_hour < 10) clock.getSprite()->print("0");
-	clock.getSprite()->println(String(_hour));
-	clock.getSprite()->setCursor(2, clock.getSprite()->getCursorY()-1);
-	if(_min < 10) clock.getSprite()->print("0");
-	clock.getSprite()->println(String(_min));
+	canvas->setTextSize(5);
+	canvas->setTextColor(TFT_PURPLE);
+	canvas->setCursor(2, 23);
+	if(_hour < 10) canvas->print("0");
+	canvas->println(String(_hour));
+	canvas->setCursor(2, canvas->getCursorY()-1);
+	if(_min < 10) canvas->print("0");
+	canvas->println(String(_min));
 
 	// track
-	clock.getSprite()->fillRoundRect(62 + 15 - (float) abs(((m * 2 + 1) % 2000) - 1000) * 15.0f / 1000.0f, 62, 40, 6, 2, TFT_PURPLE);
+	canvas->fillRoundRect(62 + 15 - (float) abs(((m * 2 + 1) % 2000) - 1000) * 15.0f / 1000.0f, 62, 40, 6, 2, TFT_PURPLE);
 
 	// date
-	clock.getSprite()->setCursor(75 + (_day < 10) * 2, 72);
-	clock.getSprite()->setTextColor(TFT_BLUE);
-	clock.getSprite()->setTextSize(1);
-	clock.getSprite()->print(String(_day) + "/");
-	if(_month < 10) clock.getSprite()->print("0");
-	clock.getSprite()->println(String(_month) + "");
+	canvas->setCursor(75 + (_day < 10) * 2, 72);
+	canvas->setTextColor(TFT_BLUE);
+	canvas->setTextSize(1);
+	canvas->print(String(_day) + "/");
+	if(_month < 10) canvas->print("0");
+	canvas->println(String(_month) + "");
 
 	// _year
-	clock.getSprite()->setCursor(77, clock.getSprite()->getCursorY() + 2);
-	clock.getSprite()->println(String(_year));
+	canvas->setCursor(77, canvas->getCursorY() + 2);
+	canvas->println(String(_year));
 
 	// seconds
-	clock.getSprite()->setCursor(78, 43);
-	clock.getSprite()->setTextColor(TFT_RED);
-	clock.getSprite()->setTextSize(2);
-	if(_sec < 10) clock.getSprite()->print("0");
-	clock.getSprite()->println(String(_sec));
+	canvas->setCursor(78, 43);
+	canvas->setTextColor(TFT_RED);
+	canvas->setTextSize(2);
+	if(_sec < 10) canvas->print("0");
+	canvas->println(String(_sec));
 
 	lockSlider.draw();
 
@@ -268,9 +265,6 @@ void LockScreen::buildUI(){
 	layers.reflow();
 
 	/** BG */
-	bgImage0.getSprite()->clear(TFT_GREEN);
-	bgImage1.getSprite()->clear(TFT_GREEN);
-	bgImage2.getSprite()->clear(TFT_GREEN);
 
 	bgScroll.setWHType(PARENT, CHILDREN);
 

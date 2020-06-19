@@ -1,9 +1,14 @@
-#include <Bitmaps/Bitmaps.hpp>
-#include "../Bitmaps/Bitmaps.hpp"
-#include <Util/Debug.h>
-#include "../CircuitWatch.h"
 #include "MenuScreen.h"
+#include "../CircuitWatch.h"
+#include <Util/Debug.h>
+#include <UI/BitmapElement.h>
+#include <Input/Input.h>
+#include "../Apps/Playground/Playground.h"
 #include "../Apps/GProg/GProg.h"
+#include "../Bitmaps/arrow_right.hpp"
+#include "../Bitmaps/yes.hpp"
+#include "../Bitmaps/cross.hpp"
+#include "../Bitmaps/apps/apps.hpp"
 
 MenuScreen* MenuScreen::instance = nullptr;
 
@@ -24,7 +29,10 @@ MenuScreen::MenuScreen(Display& display) :
 
 	instance = this;
 
-	menuItems.push_back({ "GProg", new GProg(display), nullptr });
+	menuItems.push_back({ "Programming", new GProg(display), new BitmapElement(&menu, app_programming, 35, 35) });
+	menuItems.push_back({ "Playground", new Playground(display), new BitmapElement(&menu, app_playground, 35, 35) });
+	menuItems.push_back({ "Gesture", nullptr, new BitmapElement(&menu, app_gesture, 35, 35) });
+	menuItems.push_back({ "Settings", nullptr, new BitmapElement(&menu, app_settings, 35, 35) });
 
 	buildUI();
 	pack();
@@ -48,6 +56,7 @@ void MenuScreen::btnYPress(){
 	if(instance == nullptr) return;
 
 	Context* app = instance->menuItems[instance->menu.getSelected()].context;
+	if(app == nullptr) return;
 	app->push(instance);
 }
 
@@ -58,19 +67,19 @@ void MenuScreen::btnXPress(){
 }
 
 void MenuScreen::start(){
-	Input::getInstance()->setBtnReleaseCallback(BTN_A, btnRPress);
-	Input::getInstance()->setBtnPressCallback(BTN_B, btnLPress);
-	Input::getInstance()->setBtnPressCallback(BTN_C, btnYPress);
-	Input::getInstance()->setBtnPressCallback(BTN_D, btnXPress);
+	Input::getInstance()->setBtnPressCallback(BTN_L, btnRPress);
+	Input::getInstance()->setBtnPressCallback(BTN_R, btnLPress);
+	Input::getInstance()->setBtnPressCallback(BTN_Y, btnYPress);
+	Input::getInstance()->setBtnPressCallback(BTN_N, btnXPress);
 
 	draw();
 }
 
 void MenuScreen::stop(){
-	Input::getInstance()->removeBtnReleaseCallback(BTN_A);
-	Input::getInstance()->removeBtnPressCallback(BTN_B);
-	Input::getInstance()->removeBtnPressCallback(BTN_C);
-	Input::getInstance()->removeBtnPressCallback(BTN_D);
+	Input::getInstance()->removeBtnPressCallback(BTN_L);
+	Input::getInstance()->removeBtnPressCallback(BTN_R);
+	Input::getInstance()->removeBtnPressCallback(BTN_Y);
+	Input::getInstance()->removeBtnPressCallback(BTN_N);
 
 	menu.setSelected(0);
 }
@@ -78,8 +87,8 @@ void MenuScreen::stop(){
 void MenuScreen::unpack(){
 	Context::unpack();
 
-	imageR.getSprite()->clear(TFT_BLACK).drawIcon(arrowRight, 0, 0, 18, 18, 1);
-	imageL.getSprite()->clear(TFT_BLACK).drawIcon(arrowRight, 0, 0, 18, 18, 1);
+	imageR.getSprite()->clear(TFT_BLACK).drawIcon(arrow_right, 0, 0, 18, 18, 1);
+	imageL.getSprite()->clear(TFT_BLACK).drawIcon(arrow_right, 0, 0, 18, 18, 1);
 	imageY.getSprite()->clear(TFT_BLACK).drawIcon(yes, 0, 0, 18, 18, 1);
 	imageN.getSprite()->clear(TFT_BLACK).drawIcon(cross, 0, 0, 18, 18, 1);
 	imageL.getSprite()->rotate(2);
@@ -99,11 +108,10 @@ void MenuScreen::draw(){
 }
 
 void MenuScreen::fillMenu(){
+	menu.clearItems();
+
 	for(auto& item : menuItems){
-		Image* image = item.image = new Image(&menu, 35, 35);
-		image->getSprite()->clear(TFT_WHITE);
-		addSprite(image);
-		menu.addItem({ item.title.data(), image });
+		menu.addItem({ item.title.data(), item.image });
 	}
 }
 
@@ -116,8 +124,8 @@ void MenuScreen::buildUI(){
 	imageY.getSprite()->clear(TFT_BLACK);
 	imageN.getSprite()->clear(TFT_BLACK);
 
-	imageR.getSprite()->drawIcon(arrowRight, 0, 0, 18, 18, 1);
-	imageL.getSprite()->drawIcon(arrowRight, 0, 0, 18, 18, 1);
+	imageR.getSprite()->drawIcon(arrow_right, 0, 0, 18, 18, 1);
+	imageL.getSprite()->drawIcon(arrow_right, 0, 0, 18, 18, 1);
 	imageY.getSprite()->drawIcon(yes, 0, 0, 18, 18, 1);
 	imageN.getSprite()->drawIcon(cross, 0, 0, 18, 18, 1);
 
