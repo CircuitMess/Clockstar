@@ -28,6 +28,8 @@ private:
 
 	void fillMenu();
 	void buildUI();
+
+	[[noreturn]] void train();
 };
 
 
