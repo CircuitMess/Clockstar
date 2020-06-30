@@ -1,5 +1,6 @@
 #include "Prog.h"
 #include "../../CircuitWatch.h"
+#include "../../Services/MPULocator.h"
 #include <CircuitOS.h>
 #include <Devices/Motion/MPU6050_CM.h>
 #include <array>
@@ -18,7 +19,7 @@
 
 Prog* Prog::instance = nullptr;
 
-Prog::Prog(Display& display) : Context(display), mpu(new MPU6050_CM(22, 21)),
+Prog::Prog(Display& display) : Context(display), mpu(MPULocator::getMpu()),
 		menu(new GridMenu(&getScreen(), 3)), addImg(menu, 30, 30){
 
 	instance = this;
@@ -164,7 +165,7 @@ void Prog::buildUI(){
 	fillMenu();
 
 	menu->setWHType(PARENT, PARENT);
-	menu->setTitleColor(TFT_GREEN, TFT_BLACK);
+	menu->setTitleColor(TFT_BLUE, TFT_BLACK);
 
 	menu->reflow();
 

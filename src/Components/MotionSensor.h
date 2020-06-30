@@ -2,6 +2,7 @@
 #define CIRCUITWATCH_MOTIONSENSOR_H
 
 #include <CircuitOS.h>
+#include <Update/UpdateListener.h>
 #include <Motion/MPU.h>
 
 typedef uint UINT;

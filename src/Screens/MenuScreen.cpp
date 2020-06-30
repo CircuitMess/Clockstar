@@ -9,6 +9,7 @@
 #include "../Bitmaps/yes.hpp"
 #include "../Bitmaps/cross.hpp"
 #include "../Bitmaps/apps/apps.hpp"
+#include "NotifScreen.h"
 
 MenuScreen* MenuScreen::instance = nullptr;
 
@@ -31,6 +32,7 @@ MenuScreen::MenuScreen(Display& display) :
 
 	menuItems.push_back({ "Programming", new GProg(display), new BitmapElement(&menu, app_programming, 35, 35) });
 	menuItems.push_back({ "Playground", new Playground(display), new BitmapElement(&menu, app_playground, 35, 35) });
+	menuItems.push_back({ "Notifications", new NotifScreen(display), new BitmapElement(&menu, app_notifications, 35, 35) });
 	menuItems.push_back({ "Gesture", nullptr, new BitmapElement(&menu, app_gesture, 35, 35) });
 	menuItems.push_back({ "Settings", nullptr, new BitmapElement(&menu, app_settings, 35, 35) });
 
@@ -101,7 +103,7 @@ void MenuScreen::unpack(){
 void MenuScreen::draw(){
 	screen.draw();
 
-	btnLayout.getSprite()->fillRect(btnLayout.getTotalX(), btnLayout.getTotalY(), btnLayout.getWidth(), 16, TFT_DARKGREEN);
+	btnLayout.getSprite()->fillRect(btnLayout.getTotalX(), btnLayout.getTotalY(), btnLayout.getWidth(), 16, TFT_DARKCYAN);
 	imageR.draw();
 
 	screen.commit();
@@ -146,7 +148,7 @@ void MenuScreen::buildUI(){
 
 	menu.setWHType(FIXED, PARENT);
 	menu.setWidth(100);
-	menu.setTitleColor(TFT_GREEN, TFT_BLACK);
+	menu.setTitleColor(TFT_BLUE, TFT_BLACK);
 
 	fillMenu();
 

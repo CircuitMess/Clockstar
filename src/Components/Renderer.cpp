@@ -111,11 +111,11 @@ void Renderer::render(float dt){
 				b->y * mul + 64,
 				c->x * mul + 64,
 				c->y * mul + 64,
-				RGB(((byte) 0), ((byte)(intensity * 255)), ((byte) 0))
+				RGB(((byte) 10), ((byte) 10), ((byte)(intensity * 255)))
 			);
 	}
 
-	canvas->setCursor(4, 2);
+	/*canvas->setCursor(4, 2);
 	canvas->printf("%3.0f fps   %3.2f ms\n", 1.0f / dt, dt * 1000.0f);
 	canvas->setCursor(4, canvas->getCursorY());
 	if(point != -1 ){
@@ -127,7 +127,7 @@ void Renderer::render(float dt){
 		canvas->println("Pitch / Yaw / Roll");
 		canvas->setCursor(4, canvas->getCursorY());
 		canvas->printf("%.2f / %.2f / %.2f", _euler.pitch, _euler.yaw, _euler.roll);
-	}
+	}*/
 
 	wireMut->lock();
 	display->commit();

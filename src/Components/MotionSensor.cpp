@@ -34,7 +34,7 @@ MotionSensor::MotionSensor(MPU* mpu) : mpu(mpu){
 	double null_rej = 0.5;
 
 	pipeline = new GRT::GestureRecognitionPipeline();
-	GRT::FeatureExtraction* extractor = new GRT::TimeDomainFeatures(10, 1, 1, false, true, true, false, false);
+	//GRT::FeatureExtraction* extractor = new GRT::TimeDomainFeatures(10, 1, 1, false, true, true, false, false);
 	GRT::Classifier* classifier = new GRT::DTW(false, !always_pick_something, null_rej);
 
 	//pipeline->addFeatureExtractionModule(*extractor);
@@ -46,6 +46,8 @@ MotionSensor::MotionSensor(MPU* mpu) : mpu(mpu){
 void MotionSensor::train(const std::vector<Recording *> &data){
 	GRT::TimeSeriesClassificationData trainingData;
 	trainingData.setNumDimensions(2);
+
+	Serial.printf("free stack: %d B, free heap: %d B\n", uxTaskGetStackHighWaterMark(nullptr), xPortGetFreeHeapSize());
 
 	Serial.println("Filling data");
 	for(const Recording* r : data){
@@ -65,9 +67,7 @@ void MotionSensor::train(const std::vector<Recording *> &data){
 		trainingData.addSample(1, timeseries);
 	}
 
-	UBaseType_t s = uxTaskGetStackHighWaterMark(nullptr);
-	UBaseType_t h = xPortGetFreeHeapSize();
-	Serial.printf("free stack: %d B, free heap: %d B\n", s, h);
+	Serial.printf("free stack: %d B, free heap: %d B\n", uxTaskGetStackHighWaterMark(nullptr), xPortGetFreeHeapSize());
 
 	Serial.println("Training");
 	pipeline->train(trainingData);

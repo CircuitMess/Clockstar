@@ -16,11 +16,17 @@ include_directories(~/Arduino/libraries/TFT_eSPI)
 include_directories(~/Arduino/libraries/MPU6050)
 include_directories(~/Arduino/libraries/SparkFun_ICM20948/src)
 include_directories(~/Arduino/libraries/CircuitOS/src)
+include_directories(~/Arduino/libraries/AsyncTCP/src)
+include_directories(~/Arduino/libraries/ArduinoJson)
+include_directories(~/Arduino/libraries/ArduinoJson/src)
 
 include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/libraries/Wire/src)
 include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/libraries/FS/src)
 include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/libraries/SD/src)
 include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/libraries/SPI/src)
+include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/libraries/WiFi/src)
+include_directories(~/.arduino15/packages/cm/hardware/esp32/1.0.4/libraries/HTTPClient/src)
+include_directories(~/.arduino15/packages/esp32/hardware/esp32/1.0.4/libraries/BLE/src)
 
 
 include_directories(/usr/include/glm)
@@ -32,6 +38,7 @@ AUX_SOURCE_DIRECTORY(src/Bitmaps SOURCES)
 AUX_SOURCE_DIRECTORY(src/Components SOURCES)
 AUX_SOURCE_DIRECTORY(src/Screens SOURCES)
 AUX_SOURCE_DIRECTORY(src/Screens/LockScreen SOURCES)
+AUX_SOURCE_DIRECTORY(src/Services SOURCES)
 
 add_definitions(-DDEBUG)
 

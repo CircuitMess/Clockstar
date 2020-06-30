@@ -4,6 +4,7 @@
 #include <Update/UpdateListener.h>
 #include <Support/Context.h>
 #include <Motion/vec.hpp>
+#include <Motion/MPU.h>
 
 class Renderer;
 
@@ -19,6 +20,8 @@ public:
 
 private:
 	static Playground* instance;
+
+	bool manual = false;
 
 	Renderer* renderer = nullptr;
 	vec3f euler = { 0, 0, 0 };

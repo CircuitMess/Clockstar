@@ -20,7 +20,7 @@ public:
 	using CustomElement::CustomElement;
 
 	void draw() override{
-		getSprite()->fillRect(getTotalX(), getTotalY(), getWidth(), getHeight(), TFT_GREEN);
+		getSprite()->fillRect(getTotalX(), getTotalY(), getWidth(), getHeight(), C_RGB(0, 130, 255));
 		Element::draw();
 	}
 };
@@ -64,6 +64,8 @@ private:
 	Context* unlockedScreen;
 
 	uint sleepTimer = 0;
+
+	Image minuteTicker, hourTicker;
 
 	void sleep();
 	void wake();

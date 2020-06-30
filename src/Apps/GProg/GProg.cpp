@@ -38,7 +38,7 @@ void GProg::buildUI(){
 	fillMenu();
 
 	menu.setWHType(PARENT, PARENT);
-	menu.setTitleColor(TFT_GREEN, TFT_BLACK);
+	menu.setTitleColor(TFT_BLUE, TFT_BLACK);
 
 	menu.reflow();
 
@@ -87,6 +87,7 @@ void GProg::stop(){
 uint lm = 0;
 uint lastPredict = -1;
 
+uint lastFake = 0;
 [[noreturn]] void GProg::train(){
 	std::vector<Recording*>& cache = prog->getCache();
 	Sprite* canvas = getScreen().getSprite();

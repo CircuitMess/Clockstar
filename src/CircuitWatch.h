@@ -6,4 +6,8 @@
 #define BTN_Y 33
 #define BTN_N 32
 
+#include <Arduino.h>
+
+void printMemoryInfo();
+
 #endif //SMARTWATCH_CIRCUITWATCH_H

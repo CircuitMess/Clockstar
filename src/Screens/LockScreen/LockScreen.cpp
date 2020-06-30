@@ -4,12 +4,26 @@
 #include "../../Bitmaps/lock_open.hpp"
 #include "../../Bitmaps/lock_closed.hpp"
 
+#include "../../Bitmaps/analogni/analog_bg.hpp"
+#include "../../Bitmaps/analogni/ticker_hour.hpp"
+#include "../../Bitmaps/analogni/ticker_minute.hpp"
+#include "../../Services/Kickstarter.h"
+
 #include <Time.h>
 #include <Util/Debug.h>
 #include <Update/UpdateManager.h>
 #include <Input/Input.h>
 
+#include <NeoPixelBus.h>
+#include <NeoPixelAnimator.h>
+#include <NeoPixelBrightnessBus.h>
+
+Kickstarter* ks;
+
 LockScreen* LockScreen::instance = nullptr;
+
+NeoPixelBrightnessBus<NeoGrbFeature, Neo800KbpsMethod> strip(1, 26);
+NeoPixelBrightnessBus<NeoGrbFeature, Neo800KbpsMethod>* str;
 
 LockScreen::LockScreen(Display& display, Context* unlockedScreen) :
 		Context(display), unlockedScreen(unlockedScreen),
@@ -23,10 +37,18 @@ LockScreen::LockScreen(Display& display, Context* unlockedScreen) :
 		bgImage2(&bgGrid, 36, 31),
 		fgLayout(&layers, VERTICAL),
 		clock(&fgLayout, screen.getWidth() - 10, screen.getHeight() - 28),
-		lockSlider(&fgLayout, 18, 18){
+		lockSlider(&fgLayout, 18, 18),
+		hourTicker(&fgLayout, 34, 34), minuteTicker(&fgLayout, 44, 44){
+
+	strip.Begin();
+	strip.ClearTo(RgbColor(255, 255, 255));
+	strip.SetBrightness(1);
+	strip.Show();
+	str = &strip;
 
 	addSprite(&bgLayoutCache);
 	addSprite(&clock);
+	// addSprite(&screen);
 
 	lockSlider.setLongListener(LockScreen::onUnlockLong);
 	lockSlider.setCompleteListener(LockScreen::onUnlockComplete);
@@ -50,6 +72,10 @@ LockScreen::LockScreen(Display& display, Context* unlockedScreen) :
 
 	buildUI();
 	pack();
+
+	Serial.println("Connecting WiFi...");
+	ks = new Kickstarter();
+	Serial.println("Connected!");
 }
 
 void LockScreen::btnXPress(){
@@ -77,12 +103,24 @@ void LockScreen::btnABCPress(){
 	instance->sleepTimer = 0;
 }
 
+bool ledOn = false;
 void LockScreen::start(){
 	Input::getInstance()->setBtnPressCallback(BTN_N, LockScreen::btnXPress);
 	Input::getInstance()->setBtnReleaseCallback(BTN_N, LockScreen::btnXRelease);
 
-	Input::getInstance()->setBtnPressCallback(BTN_L, LockScreen::btnABCPress);
-	Input::getInstance()->setBtnPressCallback(BTN_R, LockScreen::btnABCPress);
+
+	Input::getInstance()->setBtnPressCallback(BTN_L, [](){
+		ledOn = !ledOn;
+		Serial.printf("Setting led to %s\n", ledOn ? "on" : "off");
+		str->SetBrightness(ledOn ? 255 : 1);
+		str->Show();
+	});
+
+	Input::getInstance()->setBtnPressCallback(BTN_R, [](){
+		ks->update();
+	});
+
+
 	Input::getInstance()->setBtnPressCallback(BTN_Y, LockScreen::btnABCPress);
 
 	UpdateManager::addListener(this);
@@ -161,6 +199,54 @@ void LockScreen::update(uint time){
 #define RGB(R, G, B) (((R & 0xF8) << 8) | ((G & 0xFC) << 3) | (B >> 3))
 
 void LockScreen::draw(){
+//	screen.getSprite()->drawIcon(analog_bg, 0, 0, 128, 128);
+//
+//	//hourTicker.getSprite()->drawIcon(ticker_hour, 47, 47, 34, 34);
+//	//minuteTicker.getSprite()->drawIcon(ticker_minute, 42, 42, 44, 44);
+//
+//	hourTicker.getSprite()->clear(TFT_TRANSPARENT);
+//	minuteTicker.getSprite()->clear(TFT_TRANSPARENT);
+//
+//	float hourAngle = 2.0f * M_PI * (float) (hour() % 12) / 12.0f;
+//	float minAngle = 2.0f * M_PI * (float) minute() / 60.0f;
+//
+//	hourAngle = minAngle = 0;
+//
+//	/*for(int y = 0; y < 34; y++){
+//		for(int x = 0; x < 34; x++){
+//			int u = cos(-hourAngle) * x + sin(-hourAngle) * y + 17;
+//			int v = -sin(-hourAngle) * x + cos(-hourAngle) * y + 17;
+//			int pos = v * 34 + u;
+//			if(u >= 34 || v >= 34) continue;
+//			Serial.printf("u & v: %d %d\n", u, v);
+//			hourTicker.getSprite()->fillRect(x, y, 1, 1, ticker_hour[pos]);
+//		}
+//	}
+//
+//	for(int y = 0; y < 44; y++){
+//		for(int x = 0; x < 44; x++){
+//			int u = cos(-minAngle) * x + sin(-minAngle) * y;
+//			int v = -sin(-minAngle) * x + cos(-minAngle) * y;
+//			int pos = v * 44 + u;
+//			if(pos > (43*43)) continue;
+//			minuteTicker.getSprite()->fillRect(x, y, 1, 1, ticker_minute[pos]);
+//		}
+//	}*/
+//
+//	minuteTicker.getSprite()->drawIcon(ticker_minute, 0, 0, 44, 44);
+//	minuteTicker.getSprite()->setChroma(TFT_TRANSPARENT);
+//	minuteTicker.getSprite()->setParent(screen.getSprite());
+//	minuteTicker.getSprite()->setPos(42, 42);
+//	minuteTicker.getSprite()->push();
+//	//minuteTicker.getSprite()->pushRotated(minAngle * 180 / M_PI);
+//
+//	hourTicker.getSprite()->drawIcon(ticker_hour, 0, 0, 34, 34);
+//	hourTicker.getSprite()->setChroma(TFT_TRANSPARENT);
+//	hourTicker.getSprite()->setParent(screen.getSprite());
+//	hourTicker.getSprite()->setPos(47, 47);
+//	hourTicker.getSprite()->pushRotated(hourAngle * 180 / M_PI);
+//
+//	return;
 	screen.clear();
 
 	uint m = millis();
@@ -193,6 +279,7 @@ void LockScreen::draw(){
 	float mt = fabs(2.0f * (m % mdiffCol) / mdiffCol - 1.0);
 	//float mt = cos(2.0 * M_PI * m / mdiffCol) / 2.0 + 1.0;
 
+
 	for(int i = 0; i < rects+2; i++){
 		for(int j = 0; j < rects+2; j++){
 			float pt = (float) (i + j) / 2.0 / rects;
@@ -210,9 +297,18 @@ void LockScreen::draw(){
 	}
 
 	Sprite* canvas = clock.getSprite();
+	canvas->clear(TFT_TRANSPARENT);
+
+	/** KIckstarter */
+	canvas->setTextColor(TFT_WHITE);
+	canvas->setTextFont(1);
+	canvas->setTextSize(1);
+	canvas->setCursor(5, 1);
+	canvas->printf("Funded: %.0f\n", ks->getData().moneys);
+	canvas->setCursor(5, canvas->getCursorY() + 2);
+	canvas->printf("Backers: %d", ks->getData().backers);
 
 	/** Clock */
-	canvas->clear(TFT_TRANSPARENT);
 	canvas->setTextFont(1);
 
 	// DateTime currentTime(m / 1000); // RTC.now();
@@ -225,7 +321,7 @@ void LockScreen::draw(){
 
 	// _hour / minute
 	canvas->setTextSize(5);
-	canvas->setTextColor(TFT_PURPLE);
+	canvas->setTextColor(TFT_WHITE);
 	canvas->setCursor(2, 23);
 	if(_hour < 10) canvas->print("0");
 	canvas->println(String(_hour));
@@ -234,23 +330,23 @@ void LockScreen::draw(){
 	canvas->println(String(_min));
 
 	// track
-	canvas->fillRoundRect(62 + 15 - (float) abs(((m * 2 + 1) % 2000) - 1000) * 15.0f / 1000.0f, 62, 40, 6, 2, TFT_PURPLE);
+	canvas->fillRoundRect(62 + 15 - (float) abs(((m * 2 + 1) % 2000) - 1000) * 15.0f / 1000.0f, 62, 40, 6, 2, TFT_WHITE);
 
 	// date
 	canvas->setCursor(75 + (_day < 10) * 2, 72);
-	canvas->setTextColor(TFT_BLUE);
+	//canvas->setTextColor(TFT_BLUE);
 	canvas->setTextSize(1);
 	canvas->print(String(_day) + "/");
 	if(_month < 10) canvas->print("0");
 	canvas->println(String(_month) + "");
 
-	// _year
+	// year
 	canvas->setCursor(77, canvas->getCursorY() + 2);
 	canvas->println(String(_year));
 
 	// seconds
 	canvas->setCursor(78, 43);
-	canvas->setTextColor(TFT_RED);
+	// canvas->setTextColor(TFT_RED);
 	canvas->setTextSize(2);
 	if(_sec < 10) canvas->print("0");
 	canvas->println(String(_sec));
@@ -296,6 +392,9 @@ void LockScreen::buildUI(){
 	bgLayout.setStrictPos(true);
 
 	bgLayoutCache.setWHType(CHILDREN, CHILDREN);
+	bgLayoutCache.setWidth(0);
+	bgLayoutCache.setHeight(0);
+
 	bgLayoutCache.addChild(&bgLayout);
 	bgLayoutCache.reflow();
 	bgLayoutCache.repos();
